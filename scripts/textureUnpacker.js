@@ -102,11 +102,11 @@ function createAtlas()
 	PIXI.loader.resources.atlas.textures = {};
 	
 	var frames = json.frames;
-	
+    var textures = {};
 	for (var i in frames)
 	{
 		var rect = frames[i].frame;
-
+        var filename = frames[i].filename;
 		if (rect)
 		{
 			var size = null;
@@ -139,14 +139,16 @@ function createAtlas()
 			}
 
 			PIXI.loader.resources.atlas.textures[i] = new PIXI.Texture(PIXI.loader.resources.atlas_image.texture.baseTexture, size, size.clone(), trim, frames[i].rotated ? 2 : 0);
-			PIXI.utils.TextureCache[i] = PIXI.loader.resources.atlas.textures[i];
+			PIXI.utils.TextureCache[i] = PIXI.loader.resources.atlas.textures[i]
+            textures[filename] = PIXI.loader.resources.atlas.textures[i];
 		}
-	}	
+	}
+    return textures;
 };
 
 function onAssetsLoaded(loader, resources)
 {
-	createAtlas();
+    var textures = createAtlas();
 	
 	var p =
 	{
@@ -156,28 +158,28 @@ function onAssetsLoaded(loader, resources)
 		margin  : '10px 10px',
 		display : 'inline'
 	};
-	
-	for (var i in resources.atlas.textures)
-	{
-		var tmp = new PIXI.Sprite(resources.atlas.textures[i]);
-		stage.addChild(tmp);
-		
-		p.id     = i;
-		p.width  = tmp.width;
-		p.height = tmp.height;		
-		
-		var anchor     = createAnchor(p);
-		var destCanvas = createCanvas(anchor, p);
-		
-		renderer.resize(tmp.width, tmp.height);
-		renderer.render(stage);
-		
-		destCanvas.drawImage(renderer.view, 0, 0);
-		
-		anchor.href = document.getElementById(p.id).toDataURL();
-		
-		stage.removeChild(tmp);
-	}
+
+    for (var id in textures)
+    {
+        var tmp = new PIXI.Sprite(textures[id]);
+        stage.addChild(tmp);
+
+        p.id     = id;
+        p.width  = tmp.width;
+        p.height = tmp.height;
+
+        var anchor     = createAnchor(p);
+        var destCanvas = createCanvas(anchor, p);
+
+        renderer.resize(tmp.width, tmp.height);
+        renderer.render(stage);
+
+        destCanvas.drawImage(renderer.view, 0, 0);
+
+        anchor.href = document.getElementById(p.id).toDataURL();
+
+        stage.removeChild(tmp);
+    }
 
 	message('msg', unpackerMessages[3]);
 	show('unpackResult');
